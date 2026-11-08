@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import DeliveryBottomnav from "../components/DeliveryBottomnav";
 
 const ORDERS_URL = "https://6af02a41b9925b27ce173abb.mockapi.io/orders";
 const USER_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/users";
@@ -335,6 +336,7 @@ function Homeorder() {
           </div>
         )}
       </main>
+      <DeliveryBottomnav />
     </div>
   );
 }

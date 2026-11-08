@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import DeliveryBottomnav from "../components/DeliveryBottomnav";
 
 const USER_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/users";
 const ORDERS_URL = "https://6af02a41b9925b27ce173abb.mockapi.io/orders";
@@ -251,6 +252,7 @@ function Deliveryorders() {
           </div>
         </div>
       )}
+      <DeliveryBottomnav />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import DeliveryBottomnav from "../components/DeliveryBottomnav";
 
 const USER_URL = "https://6aedd445a677fe0fc14f8ae2.mockapi.io/users";
 
@@ -225,6 +226,7 @@ function Deliveryprofile() {
 
         <div className="delivery-profile-footer">MARKETGO DELIVERY</div>
       </main>
+      <DeliveryBottomnav />
     </div>
   );
 }
