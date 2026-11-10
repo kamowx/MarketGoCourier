@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 function DeliveryBottomnav() {
   return (
     <div className="delivery-bottom-nav">
-      <NavLink to="/deliveryprofile" className="delivery-nav-item">
+      <NavLink to="/homeorder" className="delivery-nav-item">
         <i className="fa-solid fa-house"></i>
         <span>Главная</span>
       </NavLink>

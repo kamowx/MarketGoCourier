@@ -13,13 +13,40 @@ function Deliveryorders() {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  // Получаем заказы курьера
+  const getProducts = (order) => {
+    if (Array.isArray(order.products)) return order.products;
+
+    if (order.name) {
+      return [
+        {
+          id: order.productId,
+          name: order.name,
+          avatar: order.avatar,
+          price: order.price,
+          size: order.size,
+          color: order.color,
+          quantity: order.quantity || 1,
+          weight: order.weight || 0,
+        },
+      ];
+    }
+
+    return [];
+  };
+
+  const getWeight = (order) => {
+    return getProducts(order).reduce(
+      (sum, item) =>
+        sum + Number(item.weight || 0) * Number(item.quantity || 1),
+      0,
+    );
+  };
+
   const getOrders = async () => {
     try {
       setLoading(true);
 
-      // 1. Берём UID из localStorage
-      const uid = localStorage.getItem("uid")?.replaceAll('"', "");
+      const uid = String(localStorage.getItem("uid") || "").replaceAll('"', "");
 
       if (!uid) {
         alert("Сначала войдите в аккаунт");
@@ -27,12 +54,12 @@ function Deliveryorders() {
         return;
       }
 
-      // 2. Получаем пользователей из MockAPI
       const usersRes = await axios.get(USER_URL);
 
-      // 3. Находим курьера по UID
       const courier = usersRes.data.find(
-        (item) => String(item.uid) === String(uid) && item.role === "courier",
+        (item) =>
+          String(item.uid).replaceAll('"', "") === uid &&
+          item.role === "courier",
       );
 
       if (!courier) {
@@ -41,10 +68,8 @@ function Deliveryorders() {
         return;
       }
 
-      // 4. Получаем все заказы
       const ordersRes = await axios.get(ORDERS_URL);
 
-      // 5. Оставляем только заказы этого курьера
       const myOrders = ordersRes.data.filter(
         (item) => String(item.deliveryId) === String(courier.id),
       );
@@ -62,10 +87,8 @@ function Deliveryorders() {
     getOrders();
   }, []);
 
-  // Формат даты
   const formatDate = (date) => {
     if (!date) return "Не указана";
-
     return new Date(date).toLocaleString("ru-RU");
   };
 
@@ -101,48 +124,55 @@ function Deliveryorders() {
           </div>
         ) : (
           <div className="deliveryorders-list">
-            {orders.map((item) => (
-              <div className="deliveryorders-card" key={item.id}>
-                <div className="deliveryorders-product">
-                  {item.avatar ? (
-                    <img src={item.avatar} alt={item.name} />
-                  ) : (
-                    <div className="deliveryorders-no-image">
-                      <i className="fa-solid fa-box"></i>
-                    </div>
-                  )}
+            {orders.map((item) => {
+              const products = getProducts(item);
+              const weight = getWeight(item);
 
-                  <div className="deliveryorders-info">
-                    <h3>{item.name || "Товар"}</h3>
-                    <p>Заказ №{item.id}</p>
-                    <span>Количество: {item.quantity || 1}</span>
+              return (
+                <div className="deliveryorders-card" key={item.id}>
+                  <div className="deliveryorders-product">
+                    {products[0]?.avatar ? (
+                      <img src={products[0].avatar} alt={products[0].name} />
+                    ) : (
+                      <div className="deliveryorders-no-image">
+                        <i className="fa-solid fa-box"></i>
+                      </div>
+                    )}
+
+                    <div className="deliveryorders-info">
+                      <h3>{products.length} товара в заказе</h3>
+                      <p>Заказ №{item.id}</p>
+                      <span>Общий вес: {weight} кг</span>
+                      <span>
+                        Доставка: {(weight * 100).toLocaleString("ru-RU")} сом
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="deliveryorders-card-buttons">
+                    <button
+                      className="deliveryorders-details-btn"
+                      onClick={() => setSelectedOrder(item)}
+                    >
+                      Подробнее
+                      <i className="fa-solid fa-arrow-right"></i>
+                    </button>
+
+                    <button
+                      className="deliveryorders-start-btn"
+                      onClick={() => navigate(`/orderstart/${item.id}`)}
+                    >
+                      Продолжить
+                      <i className="fa-solid fa-truck"></i>
+                    </button>
                   </div>
                 </div>
-
-                <div className="deliveryorders-card-buttons">
-                  <button
-                    className="deliveryorders-details-btn"
-                    onClick={() => setSelectedOrder(item)}
-                  >
-                    Подробнее
-                    <i className="fa-solid fa-arrow-right"></i>
-                  </button>
-
-                  <button
-                    className="deliveryorders-start-btn"
-                    onClick={() => navigate(`/orderstart/${item.id}`)}
-                  >
-                    Начать
-                    <i className="fa-solid fa-truck"></i>
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Модальное окно с подробностями */}
       {selectedOrder && (
         <div
           className="deliveryorders-modal-overlay"
@@ -166,40 +196,33 @@ function Deliveryorders() {
               </button>
             </div>
 
-            {selectedOrder.avatar && (
-              <img
-                className="deliveryorders-modal-image"
-                src={selectedOrder.avatar}
-                alt={selectedOrder.name}
-              />
-            )}
-
             <div className="deliveryorders-modal-section">
-              <h4>Информация о товаре</h4>
+              <h4>Товары в заказе</h4>
+
+              {getProducts(selectedOrder).map((item, index) => (
+                <div
+                  className="deliveryorders-detail-row"
+                  key={item.id || index}
+                >
+                  <span>
+                    {item.name || "Товар"} × {item.quantity || 1}
+                  </span>
+                  <strong>
+                    {Number(item.weight || 0) * Number(item.quantity || 1)} кг
+                  </strong>
+                </div>
+              ))}
 
               <div className="deliveryorders-detail-row">
-                <span>Название товара</span>
-                <strong>{selectedOrder.name || "Не указано"}</strong>
+                <span>Общий вес</span>
+                <strong>{getWeight(selectedOrder)} кг</strong>
               </div>
 
               <div className="deliveryorders-detail-row">
-                <span>Количество</span>
-                <strong>{selectedOrder.quantity || 1}</strong>
-              </div>
-
-              <div className="deliveryorders-detail-row">
-                <span>Размер</span>
-                <strong>{selectedOrder.size || "Не указан"}</strong>
-              </div>
-
-              <div className="deliveryorders-detail-row">
-                <span>Цвет</span>
-                <strong>{selectedOrder.color || "Не указан"}</strong>
-              </div>
-
-              <div className="deliveryorders-detail-row">
-                <span>Цена</span>
-                <strong>{selectedOrder.price || 0} сом</strong>
+                <span>Цена доставки (100 сом/кг)</span>
+                <strong>
+                  {(getWeight(selectedOrder) * 100).toLocaleString("ru-RU")} сом
+                </strong>
               </div>
             </div>
 
@@ -252,6 +275,7 @@ function Deliveryorders() {
           </div>
         </div>
       )}
+
       <DeliveryBottomnav />
     </div>
   );

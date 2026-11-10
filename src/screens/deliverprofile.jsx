@@ -150,6 +150,17 @@ function Deliveryprofile() {
               <strong>{user.numberphone || "Не указан"}</strong>
             </div>
           </div>
+
+          <div className="delivery-profile-row">
+            <div className="delivery-profile-icon">
+              <i className="fa-solid fa-price"></i>
+            </div>
+
+            <div>
+              <span>Номер телефона</span>
+              <strong>{user.balance || "Не указан"}</strong>
+            </div>
+          </div>
         </div>
 
         {/* Разделы */}
